@@ -74,7 +74,7 @@ func (LoadBalancers) ListAll(sess *session.Session, acct, region string) (*Set, 
 			arn := loadBalancer{
 				region:  region,
 				account: acct,
-				name:    *lb.LoadBalancerName,
+				dnsName: *lb.DNSName,
 			}.ARN()
 			set.firstSeen[arn] = now
 		}
@@ -88,11 +88,11 @@ func (LoadBalancers) ListAll(sess *session.Session, acct, region string) (*Set, 
 type loadBalancer struct {
 	region  string
 	account string
-	name    string
+	dnsName string
 }
 
 func (lb loadBalancer) ARN() string {
-	return "fakearn:elb:" + lb.region + ":" + lb.account + ":" + lb.name
+	return "fakearn:elb:" + lb.region + ":" + lb.account + ":" + lb.dnsName
 }
 
 func (lb loadBalancer) ResourceKey() string {
