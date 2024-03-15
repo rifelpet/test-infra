@@ -64,11 +64,15 @@ def build_test(cloud='aws',
                scenario=None,
                env=None,
                kubernetes_feature_gates=None,
-               build_cluster="default",
+               build_cluster=None,
                cluster_name=None,
                template_path=None,
                storage_e2e_cred=False):
     # pylint: disable=too-many-statements,too-many-branches,too-many-arguments
+    if build_cluster is None:
+        build_cluster = 'k8s-infra-prow-build'
+        if cloud == 'aws':
+            build_cluster = 'k8s-infra-kops-prow-build'
 
     if kops_version is None:
         # TODO: Move to kops-ci/markers/master/ once validated
@@ -451,7 +455,6 @@ def generate_grid():
                         continue
                     results.append(
                         build_test(cloud="aws",
-                                   build_cluster="k8s-infra-kops-prow-build",
                                    distro=distro,
                                    extra_dashboards=['kops-grid'],
                                    k8s_version=k8s_version,
@@ -476,7 +479,6 @@ def generate_grid():
                                    k8s_version=k8s_version,
                                    kops_version=kops_version,
                                    networking=networking,
-                                   build_cluster="k8s-infra-prow-build",
                                    extra_flags=["--gce-service-account=default"], # Workaround for test-infra#24747 # pylint: disable=line-too-long
                                    )
                     )
@@ -492,7 +494,6 @@ def generate_misc():
         build_test(name_override="kops-scenario-gcr-mirror",
                    runs_per_day=24,
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    # Latest runs with a staging AWS CCM, not available in registry.k8s.io
                    k8s_version='1.28',
                    extra_dashboards=['kops-misc']),
@@ -501,7 +502,6 @@ def generate_misc():
         build_test(name_override="kops-artifacts-sandbox",
                    runs_per_day=3,
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    k8s_version='stable',
                    extra_dashboards=['kops-misc'],
                    scenario='smoketest',
@@ -516,7 +516,6 @@ def generate_misc():
         # Test Cilium against ci k8s test suite
         build_test(name_override="kops-aws-cni-cilium-k8s-ci",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="ci",
                    networking="cilium",
@@ -529,7 +528,6 @@ def generate_misc():
                    cloud="gce",
                    k8s_version="ci",
                    networking="cilium",
-                   build_cluster="k8s-infra-prow-build",
                    runs_per_day=1,
                    extra_flags=["--gce-service-account=default"],
                    extra_dashboards=['kops-network-plugins']),
@@ -537,7 +535,6 @@ def generate_misc():
         # A special test for Calico CNI on Debian 11
         build_test(name_override="kops-aws-cni-calico-deb11",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="deb11",
                    k8s_version="stable",
                    networking="calico",
@@ -546,7 +543,6 @@ def generate_misc():
         # A special test for Calico CNI on Flatcar
         build_test(name_override="kops-aws-cni-calico-flatcar",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="flatcararm64",
                    k8s_version="stable",
                    networking="calico",
@@ -556,7 +552,6 @@ def generate_misc():
         # A special test for IPv6 using Calico CNI
         build_test(name_override="kops-aws-cni-calico-ipv6",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="calico",
@@ -571,7 +566,6 @@ def generate_misc():
         # A special test for IPv6 using Cilium CNI
         build_test(name_override="kops-aws-cni-cilium-ipv6",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="cilium",
@@ -586,7 +580,6 @@ def generate_misc():
         # A special test for IPv6 on Flatcar
         build_test(name_override="kops-aws-ipv6-flatcar",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="flatcararm64",
                    k8s_version="stable",
                    runs_per_day=3,
@@ -599,7 +592,6 @@ def generate_misc():
         # A special test for IPv6 using Calico on Flatcar
         build_test(name_override="kops-aws-cni-calico-ipv6-flatcar",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="flatcararm64",
                    k8s_version="stable",
                    networking="calico",
@@ -614,7 +606,6 @@ def generate_misc():
         # A special test for disabling IRSA
         build_test(name_override="kops-scenario-no-irsa",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    runs_per_day=3,
@@ -626,7 +617,6 @@ def generate_misc():
         # A special test for warm pool
         build_test(name_override="kops-warm-pool",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    runs_per_day=3,
@@ -639,7 +629,6 @@ def generate_misc():
         # A special test for private topology
         build_test(name_override="kops-aws-private",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    runs_per_day=3,
@@ -651,7 +640,6 @@ def generate_misc():
 
         build_test(name_override="kops-scenario-terraform",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    runs_per_day=1,
@@ -663,7 +651,6 @@ def generate_misc():
                    extra_dashboards=['kops-misc']),
         build_test(name_override="kops-scenario-ipv6-terraform",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    runs_per_day=1,
@@ -679,7 +666,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-ha-euwest1",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="calico",
@@ -693,7 +679,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-arm64-release",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    k8s_version="latest",
                    distro="u2204arm64",
                    networking="calico",
@@ -706,7 +691,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-arm64-ci",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    k8s_version="ci",
                    distro="u2204arm64",
                    networking="calico",
@@ -719,7 +703,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-arm64-conformance",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    k8s_version="ci",
                    distro="u2204arm64",
                    networking="calico",
@@ -734,7 +717,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-amd64-conformance",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    k8s_version="ci",
                    distro='u2204',
                    networking="calico",
@@ -747,7 +729,6 @@ def generate_misc():
                    extra_dashboards=["kops-misc"]),
 
         build_test(name_override="kops-aws-updown",
-                   build_cluster="k8s-infra-kops-prow-build",
                    k8s_version="stable",
                    distro="u2204arm64",
                    networking="calico",
@@ -760,7 +741,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-aws-load-balancer-controller",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    networking="cilium",
                    kops_channel="alpha",
                    k8s_version="stable",
@@ -770,7 +750,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-keypair-rotation-ha",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    kops_channel="alpha",
                    k8s_version="stable",
                    runs_per_day=1,
@@ -781,7 +760,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-metrics-server",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    networking="cilium",
                    kops_channel="alpha",
                    k8s_version="stable",
@@ -791,7 +769,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-pod-identity-webhook",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    networking="cilium",
                    kops_channel="alpha",
                    k8s_version="stable",
@@ -801,7 +778,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-addon-resource-tracking",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    networking="cilium",
                    kops_channel="alpha",
                    k8s_version="stable",
@@ -811,7 +787,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-external-dns",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="cilium",
@@ -825,7 +800,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-ipv6-external-dns",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="cilium",
@@ -841,7 +815,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-apiserver-nodes",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    runs_per_day=3,
@@ -851,7 +824,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-karpenter",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="cilium",
@@ -867,7 +839,6 @@ def generate_misc():
 
         build_test(name_override="kops-aws-ipv6-karpenter",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="u2204arm64",
                    k8s_version="stable",
                    networking="cilium",
@@ -888,7 +859,6 @@ def generate_misc():
         # https://github.com/kubernetes/kubernetes/issues/123255
         build_test(name_override="kops-aws-k28-hostname-bug123255",
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="al2023",
                    k8s_version="1.28",
                    networking="cilium",
@@ -902,7 +872,6 @@ def generate_misc():
         build_test(name_override="kops-aws-selinux",
                    # RHEL8 VM image is enforcing SELinux by default.
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="rhel8",
                    networking="cilium",
                    k8s_version="ci",
@@ -934,7 +903,6 @@ def generate_misc():
         build_test(name_override="kops-aws-selinux-alpha",
                    # RHEL8 VM image is enforcing SELinux by default.
                    cloud="aws",
-                   build_cluster="k8s-infra-kops-prow-build",
                    distro="rhel8",
                    networking="cilium",
                    k8s_version="ci",
@@ -971,7 +939,6 @@ def generate_misc():
                    k8s_version="ci",
                    kops_version="https://storage.googleapis.com/kops-ci/bin/latest-ci.txt",
                    kops_channel="alpha",
-                   build_cluster="k8s-infra-prow-build",
                    extra_flags=[
                        "--image=cos-cloud/cos-105-17412-156-49",
                        "--set=spec.nodeProblemDetector.enabled=true",
@@ -983,6 +950,7 @@ def generate_misc():
                    runs_per_day=8),
 
         build_test(name_override="ci-kubernetes-e2e-al2023-aws-canary",
+                   build_cluster="default",
                    cloud="aws",
                    distro="al2023",
                    networking="kubenet",
@@ -999,6 +967,7 @@ def generate_misc():
                    runs_per_day=8),
 
         build_test(name_override="ci-kubernetes-e2e-ubuntu-aws-canary",
+                   build_cluster="default",
                    cloud="aws",
                    distro="u2204",
                    networking="kubenet",
@@ -1022,7 +991,6 @@ def generate_misc():
                    k8s_version="ci",
                    kops_version="https://storage.googleapis.com/kops-ci/bin/latest-ci.txt",
                    kops_channel="alpha",
-                   build_cluster="k8s-infra-prow-build",
                    extra_flags=[
                        "--image=cos-cloud/cos-105-17412-156-49",
                        "--set=spec.networking.networkID=default",
@@ -1058,7 +1026,6 @@ def generate_misc():
                    k8s_version="ci",
                    kops_version="https://storage.googleapis.com/kops-ci/bin/latest-ci.txt",
                    kops_channel="alpha",
-                   build_cluster="k8s-infra-prow-build",
                    extra_flags=[
                        "--image=cos-cloud/cos-105-17412-156-49",
                        "--set=spec.kubeAPIServer.logLevel=4",
@@ -1201,7 +1168,6 @@ def generate_misc():
                    k8s_version="ci",
                    kops_version="https://storage.googleapis.com/kops-ci/bin/latest-ci.txt",
                    kops_channel="alpha",
-                   build_cluster="k8s-infra-prow-build",
                    extra_flags=[
                        "--image=cos-cloud/cos-105-17412-156-49",
                        "--node-count=3",
@@ -1236,7 +1202,6 @@ def generate_misc():
                    k8s_version="ci",
                    kops_version="https://storage.googleapis.com/kops-ci/bin/latest-ci.txt",
                    kops_channel="alpha",
-                   build_cluster="k8s-infra-prow-build",
                    extra_flags=[
                        "--image=cos-cloud/cos-105-17412-156-49",
                        "--node-volume-size=100",
@@ -1299,7 +1264,6 @@ def generate_misc():
                    k8s_version="ci",
                    kops_version="https://storage.googleapis.com/kops-ci/bin/latest-ci.txt",
                    kops_channel="alpha",
-                   build_cluster="k8s-infra-prow-build",
                    extra_flags=[
                        "--image=cos-cloud/cos-105-17412-156-49",
                        "--set=spec.kubeAPIServer.logLevel=4",
@@ -1328,7 +1292,6 @@ def generate_conformance():
         results.append(
             build_test(
                 cloud='aws',
-                build_cluster='k8s-infra-kops-prow-build',
                 k8s_version=version,
                 kops_version=version,
                 kops_channel='alpha',
@@ -1345,7 +1308,6 @@ def generate_conformance():
         results.append(
             build_test(
                 cloud='aws',
-                build_cluster='k8s-infra-kops-prow-build',
                 k8s_version=version,
                 kops_version=version,
                 kops_channel='alpha',
@@ -1392,7 +1354,6 @@ def generate_distros():
                        extra_dashboards=['kops-distros'],
                        extra_flags=extra_flags,
                        runs_per_day=3,
-                       build_cluster='k8s-infra-kops-prow-build',
                        )
         )
     return results
@@ -1441,7 +1402,6 @@ def generate_network_plugins():
             k8s_version = 'ci'
         results.append(
             build_test(
-                build_cluster='k8s-infra-kops-prow-build',
                 distro='u2204',
                 k8s_version=k8s_version,
                 kops_channel='alpha',
@@ -1560,7 +1520,6 @@ def generate_upgrades():
     # Exit criteria: Remove when https://github.com/kubernetes/kops/issues/16276 is fixed
     results.append(
         build_test(name_override='kops-aws-upgrade-bug16276-calico',
-                   build_cluster='k8s-infra-kops-prow-build',
                    cluster_name='bug16276-calico.k8s.local',
                    distro='u2204',
                    networking='calico',
@@ -1583,7 +1542,6 @@ def generate_upgrades():
     # Exit criteria: Remove when https://github.com/kubernetes/kops/issues/16276 is fixed
     results.append(
         build_test(name_override='kops-aws-upgrade-bug16276-cilium',
-                   build_cluster='k8s-infra-kops-prow-build',
                    cluster_name='bug16276-cilium.k8s.local',
                    distro='u2204',
                    networking='cilium',
@@ -1765,6 +1723,7 @@ def generate_presubmits_scale():
 def generate_versions():
     results = [
         build_test(
+            build_cluster="default",
             k8s_version='ci',
             kops_channel='alpha',
             name_override='kops-aws-k8s-latest',
@@ -1779,7 +1738,6 @@ def generate_versions():
         results.append(
             build_test(
                 cloud='aws',
-                build_cluster='k8s-infra-kops-prow-build',
                 k8s_version=version,
                 kops_channel='alpha',
                 name_override=f"kops-aws-k8s-{version.replace('.', '-')}",
@@ -1802,7 +1760,6 @@ def generate_pipeline():
         results.append(
             build_test(
                 cloud="aws",
-                build_cluster="k8s-infra-kops-prow-build",
                 k8s_version=version.replace('master', 'latest'),
                 kops_version=kops_version,
                 kops_channel='alpha',
